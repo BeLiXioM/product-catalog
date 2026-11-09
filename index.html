@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Изучение JavaScript</title>
+  <script src="./script.js" defer></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main class="catalog">
+  <h1>Каталог товаров</h1>
+
+  <form id="filter-form" >
+    <label for="search-query">Название товара</label>
+    <input id="search-query" type="text">
+
+    <label for="max-price">Максимальная цена, ₽</label>
+    <input id="max-price" type="number" min="0" value="1500">
+    <div class="stock-option">
+    <label for="only-in-stock">Только в наличии</label>
+    <input id="only-in-stock" type="checkbox" checked>
+    </div>
+    <button id="show-affordable" type="submit">
+      Применить бюджет
+    </button>
+  </form>
+
+  <button id="all-button" type="button">
+    Показать все товары
+  </button>
+
+  <p id="catalog-status">Загрузка каталога…</p>
+  <ul id="product-list"></ul>
+</main>
+</body>
+</html>
