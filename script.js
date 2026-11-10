@@ -66,6 +66,7 @@ const priceInput = document.querySelector("#max-price");
 const stockCheckbox = document.querySelector("#only-in-stock");
 const filterForm = document.querySelector("#filter-form");
 const allButton = document.querySelector("#all-button");
+const sortSelect = document.querySelector("#sort-order");
 
 function handleFilterSubmit(event) {
   event.preventDefault();
@@ -90,12 +91,18 @@ function handleFilterSubmit(event) {
 
   const searchResult = searchProducts(result, searchInput.value);
   renderProducts(searchResult);
+
+
+const sortedResult = sortProducts(searchResult, sortSelect.value);
+renderProducts(sortedResult);
+
 }
 
 function showAllItems() {
   priceInput.value = "";
   searchInput.value = "";
   stockCheckbox.checked = false;
+  sortSelect.value = "default";
   renderProducts(products);
 }
 
@@ -103,3 +110,17 @@ filterForm.addEventListener("submit", handleFilterSubmit);
 allButton.addEventListener("click", showAllItems);
 
 renderProducts(filterProducts(products, 1500));
+
+
+function sortProducts(products, order){
+  const sortedProducts = [...products];
+  if (order === "asc"){
+    sortedProducts.sort((a,b) => a.price - b.price);
+  }
+  else if (order === "desc"){
+    sortedProducts.sort((a,b) => b.price - a.price);
+  }
+return sortedProducts;
+  
+}
+console.log(sortProducts(products, "default"));
