@@ -64,13 +64,14 @@ function renderProducts(products) {
 const searchInput = document.querySelector("#search-query");
 const priceInput = document.querySelector("#max-price");
 const stockCheckbox = document.querySelector("#only-in-stock");
+const discountCheckBox  = document.querySelector("#apply-discount");
 const filterForm = document.querySelector("#filter-form");
 const allButton = document.querySelector("#all-button");
 const sortSelect = document.querySelector("#sort-order");
 
 function handleFilterSubmit(event) {
   event.preventDefault();
-
+  const applyDiscountEnabled = discountCheckBox.checked;
   const onlyInStock = stockCheckbox.checked;
 
   if (priceInput.value === "") {
@@ -87,10 +88,15 @@ function handleFilterSubmit(event) {
     return;
   }
 
-  const result = filterProducts(products, maxPrice, onlyInStock);
+  let productsForFilter = products;
+  if (applyDiscountEnabled){
+    productsForFilter = applyDiscountToProducts(products, 10);
+  }
+
+  const result = filterProducts(productsForFilter, maxPrice, onlyInStock);
 
   const searchResult = searchProducts(result, searchInput.value);
-  renderProducts(searchResult);
+  
 
 
 const sortedResult = sortProducts(searchResult, sortSelect.value);
@@ -98,10 +104,25 @@ renderProducts(sortedResult);
 
 }
 
+function applyDiscount(product, discountPercent){
+  const discountProduct = {...product};
+  discountProduct.price -= discountProduct.price * (discountPercent / 100);
+  return discountProduct;
+}
+
+function applyDiscountToProducts(products, discountPercent){
+  
+  return products.map(product => applyDiscount(product, discountPercent));
+  
+}
+
+
+
 function showAllItems() {
   priceInput.value = "";
   searchInput.value = "";
   stockCheckbox.checked = false;
+  discountCheckBox.checked = false;
   sortSelect.value = "default";
   renderProducts(products);
 }
@@ -123,4 +144,3 @@ function sortProducts(products, order){
 return sortedProducts;
   
 }
-console.log(sortProducts(products, "default"));
