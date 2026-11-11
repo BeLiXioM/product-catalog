@@ -71,6 +71,31 @@ const sortSelect = document.querySelector("#sort-order");
 
 function handleFilterSubmit(event) {
   event.preventDefault();
+  applyFilters();
+
+}
+
+const savedApplyDiscount = localStorage.getItem("catalogApplyDiscount");
+if (savedApplyDiscount !== null){
+  discountCheckBox.checked = savedApplyDiscount === "true";
+}
+
+const savedOnlyInStock = localStorage.getItem("catalogOnlyInStock");
+if (savedOnlyInStock !== null) {
+  stockCheckbox.checked = savedOnlyInStock === "true";
+}
+
+const savedSortOrder = localStorage.getItem("catalogSortOrder");
+if (savedSortOrder !== null){
+  sortSelect.value = savedSortOrder;
+}
+
+const savedSearchQuery = localStorage.getItem("catalogSearchQuery");
+if (savedSearchQuery !== null){
+ searchInput.value = savedSearchQuery;
+}
+
+function applyFilters(){
   const applyDiscountEnabled = discountCheckBox.checked;
   const onlyInStock = stockCheckbox.checked;
 
@@ -88,6 +113,13 @@ function handleFilterSubmit(event) {
     return;
   }
 
+  localStorage.setItem("catalogApplyDiscount", discountCheckBox.checked);
+  localStorage.setItem("catalogOnlyInStock", stockCheckbox.checked);
+  localStorage.setItem("catalogSortOrder", sortSelect.value);
+  localStorage.setItem("catalogMaxPrice", priceInput.value);
+  localStorage.setItem("catalogSearchQuery", searchInput.value);
+  
+
   let productsForFilter = products;
   if (applyDiscountEnabled){
     productsForFilter = applyDiscountToProducts(products, 10);
@@ -101,7 +133,11 @@ function handleFilterSubmit(event) {
 
 const sortedResult = sortProducts(searchResult, sortSelect.value);
 renderProducts(sortedResult);
+}
 
+const savedMaxPrice = localStorage.getItem("catalogMaxPrice");
+if (savedMaxPrice !== null) {
+ priceInput.value = savedMaxPrice;
 }
 
 function applyDiscount(product, discountPercent){
@@ -119,6 +155,11 @@ function applyDiscountToProducts(products, discountPercent){
 
 
 function showAllItems() {
+  localStorage.removeItem("catalogApplyDiscount");
+  localStorage.removeItem("catalogOnlyInStock");
+  localStorage.removeItem("catalogSortOrder");
+  localStorage.removeItem("catalogSearchQuery");
+  localStorage.removeItem("catalogMaxPrice");
   priceInput.value = "";
   searchInput.value = "";
   stockCheckbox.checked = false;
@@ -127,10 +168,12 @@ function showAllItems() {
   renderProducts(products);
 }
 
+applyFilters();
+
 filterForm.addEventListener("submit", handleFilterSubmit);
 allButton.addEventListener("click", showAllItems);
 
-renderProducts(filterProducts(products, 1500));
+
 
 
 function sortProducts(products, order){
@@ -144,3 +187,10 @@ function sortProducts(products, order){
 return sortedProducts;
   
 }
+
+
+
+
+
+
+
