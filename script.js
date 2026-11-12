@@ -6,6 +6,15 @@ const products = [
   { id: 5, name: "Наушники", price: 3000, inStock: false }
 ];
 
+// Элементы страницы
+const searchInput = document.querySelector("#search-query");
+const priceInput = document.querySelector("#max-price");
+const stockCheckbox = document.querySelector("#only-in-stock");
+const discountCheckBox = document.querySelector("#apply-discount");
+const filterForm = document.querySelector("#filter-form");
+const allButton = document.querySelector("#all-button");
+const sortSelect = document.querySelector("#sort-order");
+
 function filterProducts(products, maxPrice, onlyInStock = true) {
   return products.filter((product) =>
     (!onlyInStock || product.inStock) && product.price <= maxPrice
@@ -13,13 +22,37 @@ function filterProducts(products, maxPrice, onlyInStock = true) {
 }
 
 function searchProducts(products, query) {
-  const trimmedQuery = query.trim();
-  const normalizedQuery = trimmedQuery.toLowerCase();
+  const normalizedQuery = query.trim().toLowerCase();
 
   return products.filter((product) => {
     const normalizedName = product.name.toLowerCase();
     return normalizedName.includes(normalizedQuery);
   });
+}
+
+function sortProducts(products, order) {
+  const sortedProducts = [...products];
+
+  if (order === "asc") {
+    sortedProducts.sort((a, b) => a.price - b.price);
+  } else if (order === "desc") {
+    sortedProducts.sort((a, b) => b.price - a.price);
+  }
+
+  return sortedProducts;
+}
+
+function applyDiscount(product, discountPercent) {
+  const discountProduct = { ...product };
+  discountProduct.price -= discountProduct.price * discountPercent / 100;
+
+  return discountProduct;
+}
+
+function applyDiscountToProducts(products, discountPercent) {
+  return products.map((product) =>
+    applyDiscount(product, discountPercent)
+  );
 }
 
 function renderProducts(products) {
@@ -61,46 +94,51 @@ function renderProducts(products) {
   }
 }
 
-const searchInput = document.querySelector("#search-query");
-const priceInput = document.querySelector("#max-price");
-const stockCheckbox = document.querySelector("#only-in-stock");
-const discountCheckBox  = document.querySelector("#apply-discount");
-const filterForm = document.querySelector("#filter-form");
-const allButton = document.querySelector("#all-button");
-const sortSelect = document.querySelector("#sort-order");
+function restoreSettings() {
+  const savedSettingsJSON = localStorage.getItem("catalogSettings");
 
-function handleFilterSubmit(event) {
-  event.preventDefault();
-  applyFilters();
+  if (savedSettingsJSON !== null) {
+    try {
+      const savedSettings = JSON.parse(savedSettingsJSON);
 
+      if (
+        typeof savedSettings.maxPrice === "number" &&
+        savedSettings.maxPrice >= 0
+      ) {
+        priceInput.value = savedSettings.maxPrice;
+      }
+
+      if (typeof savedSettings.query === "string") {
+        searchInput.value = savedSettings.query;
+      }
+
+      if (typeof savedSettings.onlyInStock === "boolean") {
+        stockCheckbox.checked = savedSettings.onlyInStock;
+      }
+
+      if (
+        savedSettings.sortOrder === "default" ||
+        savedSettings.sortOrder === "asc" ||
+        savedSettings.sortOrder === "desc"
+      ) {
+        sortSelect.value = savedSettings.sortOrder;
+      }
+
+      if (typeof savedSettings.applyDiscount === "boolean") {
+        discountCheckBox.checked = savedSettings.applyDiscount;
+      }
+    } catch {
+      console.log("Не удалось восстановить настройки");
+    }
+  }
 }
 
-const savedApplyDiscount = localStorage.getItem("catalogApplyDiscount");
-if (savedApplyDiscount !== null){
-  discountCheckBox.checked = savedApplyDiscount === "true";
-}
-
-const savedOnlyInStock = localStorage.getItem("catalogOnlyInStock");
-if (savedOnlyInStock !== null) {
-  stockCheckbox.checked = savedOnlyInStock === "true";
-}
-
-const savedSortOrder = localStorage.getItem("catalogSortOrder");
-if (savedSortOrder !== null){
-  sortSelect.value = savedSortOrder;
-}
-
-const savedSearchQuery = localStorage.getItem("catalogSearchQuery");
-if (savedSearchQuery !== null){
- searchInput.value = savedSearchQuery;
-}
-
-function applyFilters(){
+function applyFilters() {
+  const statusElement = document.querySelector("#catalog-status");
   const applyDiscountEnabled = discountCheckBox.checked;
   const onlyInStock = stockCheckbox.checked;
 
   if (priceInput.value === "") {
-    const statusElement = document.querySelector("#catalog-status");
     statusElement.textContent = "Введите максимальную цену";
     return;
   }
@@ -108,89 +146,58 @@ function applyFilters(){
   const maxPrice = Number(priceInput.value);
 
   if (maxPrice < 0) {
-    const statusElement = document.querySelector("#catalog-status");
     statusElement.textContent = "Цена не может быть отрицательной";
     return;
   }
 
-  localStorage.setItem("catalogApplyDiscount", discountCheckBox.checked);
-  localStorage.setItem("catalogOnlyInStock", stockCheckbox.checked);
-  localStorage.setItem("catalogSortOrder", sortSelect.value);
-  localStorage.setItem("catalogMaxPrice", priceInput.value);
-  localStorage.setItem("catalogSearchQuery", searchInput.value);
-  
+  const settings = {
+    maxPrice: maxPrice,
+    query: searchInput.value,
+    onlyInStock: stockCheckbox.checked,
+    sortOrder: sortSelect.value,
+    applyDiscount: discountCheckBox.checked
+  };
+
+  const settingsJSON = JSON.stringify(settings);
+  localStorage.setItem("catalogSettings", settingsJSON);
 
   let productsForFilter = products;
-  if (applyDiscountEnabled){
+
+  if (applyDiscountEnabled) {
     productsForFilter = applyDiscountToProducts(products, 10);
   }
 
-  const result = filterProducts(productsForFilter, maxPrice, onlyInStock);
+  const result = filterProducts(
+    productsForFilter,
+    maxPrice,
+    onlyInStock
+  );
 
   const searchResult = searchProducts(result, searchInput.value);
-  
+  const sortedResult = sortProducts(searchResult, sortSelect.value);
 
-
-const sortedResult = sortProducts(searchResult, sortSelect.value);
-renderProducts(sortedResult);
+  renderProducts(sortedResult);
 }
 
-const savedMaxPrice = localStorage.getItem("catalogMaxPrice");
-if (savedMaxPrice !== null) {
- priceInput.value = savedMaxPrice;
+function handleFilterSubmit(event) {
+  event.preventDefault();
+  applyFilters();
 }
-
-function applyDiscount(product, discountPercent){
-  const discountProduct = {...product};
-  discountProduct.price -= discountProduct.price * (discountPercent / 100);
-  return discountProduct;
-}
-
-function applyDiscountToProducts(products, discountPercent){
-  
-  return products.map(product => applyDiscount(product, discountPercent));
-  
-}
-
-
 
 function showAllItems() {
-  localStorage.removeItem("catalogApplyDiscount");
-  localStorage.removeItem("catalogOnlyInStock");
-  localStorage.removeItem("catalogSortOrder");
-  localStorage.removeItem("catalogSearchQuery");
-  localStorage.removeItem("catalogMaxPrice");
+  localStorage.removeItem("catalogSettings");
+
   priceInput.value = "";
   searchInput.value = "";
   stockCheckbox.checked = false;
   discountCheckBox.checked = false;
   sortSelect.value = "default";
+
   renderProducts(products);
 }
-
-applyFilters();
 
 filterForm.addEventListener("submit", handleFilterSubmit);
 allButton.addEventListener("click", showAllItems);
 
-
-
-
-function sortProducts(products, order){
-  const sortedProducts = [...products];
-  if (order === "asc"){
-    sortedProducts.sort((a,b) => a.price - b.price);
-  }
-  else if (order === "desc"){
-    sortedProducts.sort((a,b) => b.price - a.price);
-  }
-return sortedProducts;
-  
-}
-
-
-
-
-
-
-
+restoreSettings();
+applyFilters();
