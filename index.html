@@ -10,7 +10,6 @@
 <body>
 <main class="catalog">
   <h1>Каталог товаров</h1>
-
   <form id="filter-form" >
     <label for="search-query">Название товара</label>
     <input id="search-query" type="text">
@@ -39,6 +38,7 @@
   </button>
 
   <p id="catalog-status">Загрузка каталога…</p>
+  <button id="retry-button"  type="button" hidden>Повторить загрузку</button>
   <ul id="product-list"></ul>
 </main>
 </body>

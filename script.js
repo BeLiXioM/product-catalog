@@ -1,13 +1,4 @@
-import { products } from "./products.js";
-
-
-const searchInput = document.querySelector("#search-query");
-const priceInput = document.querySelector("#max-price");
-const stockCheckbox = document.querySelector("#only-in-stock");
-const discountCheckBox = document.querySelector("#apply-discount");
-const filterForm = document.querySelector("#filter-form");
-const allButton = document.querySelector("#all-button");
-const sortSelect = document.querySelector("#sort-order");
+import { loadProducts } from "./api.js";
 
 import { filterProducts, searchProducts, getAvailableCount } from "./filters.js";
 
@@ -17,6 +8,39 @@ import { sortProducts } from "./sort.js";
 import { applyDiscountToProducts } from "./discount.js";
 
 import { renderProducts } from "./render.js";
+
+let products = [];
+
+const searchInput = document.querySelector("#search-query");
+const priceInput = document.querySelector("#max-price");
+const stockCheckbox = document.querySelector("#only-in-stock");
+const discountCheckBox = document.querySelector("#apply-discount");
+const filterForm = document.querySelector("#filter-form");
+const allButton = document.querySelector("#all-button");
+const sortSelect = document.querySelector("#sort-order");
+const filterButton = document.querySelector("#show-affordable");
+const retryButton = document.querySelector("#retry-button");
+retryButton.addEventListener("click", initCatalog);
+
+async function initCatalog() {
+ 
+  const statusElement = document.querySelector("#catalog-status");
+  statusElement.textContent ="Загрузка товаров...";
+  filterButton.disabled = true;
+  allButton.disabled = true;
+  retryButton.hidden = true
+  try{
+  products = await loadProducts();
+  applyFilters(); 
+  filterButton.disabled = false;
+  allButton.disabled = false;
+  }
+  catch (error){
+    statusElement.textContent = error.message;
+    retryButton.hidden = false;
+  }
+  
+}
 
 function restoreSettings() {
   const savedSettingsJSON = localStorage.getItem("catalogSettings");
@@ -124,5 +148,4 @@ filterForm.addEventListener("submit", handleFilterSubmit);
 allButton.addEventListener("click", showAllItems);
 
 restoreSettings();
-applyFilters();
-
+initCatalog();
