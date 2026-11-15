@@ -36,8 +36,9 @@ async function initCatalog() {
   allButton.disabled = false;
   }
   catch (error){
-    statusElement.textContent = error.message;
+    statusElement.textContent = "Не удалось загрузить товары. Попробуйте ещё раз.";
     retryButton.hidden = false;
+    console.error(error);
   }
   
 }
