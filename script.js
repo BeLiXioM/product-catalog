@@ -9,6 +9,8 @@ import { applyDiscountToProducts } from "./discount.js";
 
 import { renderProducts } from "./render.js";
 
+import { areProductsValid } from "./validation.js";
+
 let products = [];
 const cart = [];
 
@@ -175,11 +177,13 @@ cartCountElement.textContent = `В корзине: ${cart.length}`;
 
 function removeFromCart(index){
   cart.splice(index, 1);
+  saveCart();
   renderCartSummary();
 }
 
 function addToCart(product) {
   cart.push(product);
+  saveCart();
   renderCartSummary();
 }
 
@@ -193,13 +197,47 @@ function getCartTotal(cart){
 
 function clearCart(){
     cart.length = 0;
+    saveCart();
     renderCartSummary();
 }
 
+function saveCart(){
+  const cartJSON = JSON.stringify(cart);
+  localStorage.setItem("catalogCart", cartJSON);
+}
+
+function restoreCart(){
+  const savedCartJSON = localStorage.getItem("catalogCart");
+  if (savedCartJSON === null){
+    return
+  }
+  try {
+    const savedCart = JSON.parse(savedCartJSON);
+    if (!Array.isArray(savedCart)){
+    throw new Error("Ожидался массив корзины");
+    }
+    if (!areProductsValid(savedCart)){
+      throw new Error("Некорректные товары в корзине");
+    }
+    cart.length = 0;
+    for (const product of savedCart) {
+      cart.push(product);
+    }
+  }
+
+  catch {
+    console.log("Не удалось восстановить корзину");
+  }
+
+
+}
 
 clearCartButton.addEventListener("click", clearCart);
 filterForm.addEventListener("submit", handleFilterSubmit);
 allButton.addEventListener("click", showAllItems);
 
+
+restoreCart();
+renderCartSummary();
 restoreSettings();
 initCatalog();
