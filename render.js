@@ -1,4 +1,4 @@
-export function renderProducts(products) {
+export function renderProducts(products, onAddToCart) {
   const statusElement = document.querySelector("#catalog-status");
   const listElement = document.querySelector("#product-list");
 
@@ -11,6 +11,13 @@ export function renderProducts(products) {
   listElement.textContent = "";
 
   for (const product of products) {
+    const addButton = document.createElement("button");
+    addButton.addEventListener("click", () => {
+    onAddToCart(product);
+  });
+    addButton.setAttribute("type", "button");
+    addButton.textContent = "В корзину";
+
     const itemElement = document.createElement("li");
     itemElement.classList.add("product-card");
 
@@ -26,6 +33,7 @@ export function renderProducts(products) {
       availabilityElement.classList.add("in-stock");
       availabilityElement.textContent = "В наличии";
     } else {
+      addButton.disabled = true;
       availabilityElement.classList.add("out-of-stock");
       availabilityElement.textContent = "Нет в наличии";
     }
@@ -33,6 +41,7 @@ export function renderProducts(products) {
     itemElement.append(nameElement);
     itemElement.append(priceElement);
     itemElement.append(availabilityElement);
+    itemElement.append(addButton);
     listElement.append(itemElement);
   }
 }

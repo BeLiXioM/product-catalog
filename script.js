@@ -10,6 +10,7 @@ import { applyDiscountToProducts } from "./discount.js";
 import { renderProducts } from "./render.js";
 
 let products = [];
+const cart = [];
 
 const searchInput = document.querySelector("#search-query");
 const priceInput = document.querySelector("#max-price");
@@ -21,6 +22,10 @@ const sortSelect = document.querySelector("#sort-order");
 const filterButton = document.querySelector("#show-affordable");
 const retryButton = document.querySelector("#retry-button");
 retryButton.addEventListener("click", initCatalog);
+const cartCountElement = document.querySelector("#cart-count");
+const cartTotalElement =document.querySelector("#cart-total");
+const clearCartButton = document.querySelector("#clear-cart");
+const cartListElement = document.querySelector("#cart-list");
 
 async function initCatalog() {
  
@@ -125,7 +130,7 @@ function applyFilters() {
   const searchResult = searchProducts(result, searchInput.value);
   const sortedResult = sortProducts(searchResult, sortSelect.value);
 
-  renderProducts(sortedResult);
+  renderProducts(sortedResult, addToCart);
 }
 
 function handleFilterSubmit(event) {
@@ -142,9 +147,57 @@ function showAllItems() {
   discountCheckBox.checked = false;
   sortSelect.value = "default";
 
-  renderProducts(products);
+  renderProducts(products, addToCart);
 }
 
+function renderCartItems(){
+  cartListElement.textContent = "";
+   for (let i = 0; i < cart.length; i++) {
+    const product = cart[i];
+    const li = document.createElement("li");
+    li.textContent = `${product.name} - ${product.price} ₽`;
+    const removeButton = document.createElement("button");
+    removeButton.type = 'button';
+    removeButton.textContent = 'Удалить';
+    li.append(removeButton);
+    cartListElement.append(li);
+    removeButton.addEventListener("click", () => removeFromCart(i));
+  }
+
+}
+
+function renderCartSummary(){
+cartCountElement.textContent = `В корзине: ${cart.length}`;
+  const total = getCartTotal(cart);
+  cartTotalElement.textContent = `Сумма: ${total} ₽`;
+  renderCartItems();
+}
+
+function removeFromCart(index){
+  cart.splice(index, 1);
+  renderCartSummary();
+}
+
+function addToCart(product) {
+  cart.push(product);
+  renderCartSummary();
+}
+
+function getCartTotal(cart){
+  let total = 0;
+  for (const product of cart){
+    total += product.price;
+  }
+  return total;
+}
+
+function clearCart(){
+    cart.length = 0;
+    renderCartSummary();
+}
+
+
+clearCartButton.addEventListener("click", clearCart);
 filterForm.addEventListener("submit", handleFilterSubmit);
 allButton.addEventListener("click", showAllItems);
 
