@@ -9,7 +9,10 @@ import { applyDiscountToProducts } from "./discount.js";
 
 import { renderProducts } from "./render.js";
 
-import { areProductsValid } from "./validation.js";
+import { getCartTotal } from "./cart.js";
+import { getCartCount } from "./cart.js";
+import { saveCart } from "./cart.js";
+import { restoreCart } from "./cart.js";
 
 let products = [];
 const cart = [];
@@ -154,6 +157,12 @@ function showAllItems() {
 
 function renderCartItems(){
   cartListElement.textContent = "";
+  if (cart.length === 0){
+    const li = document.createElement("li");
+    li.textContent = "Корзина пуста";
+    cartListElement.append(li);
+    return;
+  }
    for (let i = 0; i < cart.length; i++) {
     const product = cart[i];
     const li = document.createElement("li");
@@ -180,10 +189,8 @@ function renderCartItems(){
 }
 
 function renderCartSummary(){
-  let count = 0;
-  for (const product of cart){
-    count += product.quantity;
-  }
+  clearCartButton.disabled = cart.length === 0;
+  const count = getCartCount(cart);
 cartCountElement.textContent = `В корзине: ${count}`;
   const total = getCartTotal(cart);
   cartTotalElement.textContent = `Сумма: ${total} ₽`;
@@ -192,7 +199,7 @@ cartCountElement.textContent = `В корзине: ${count}`;
 
 function removeFromCart(index){
   cart.splice(index, 1);
-  saveCart();
+  saveCart(cart);
   renderCartSummary();
 }
 
@@ -205,70 +212,20 @@ function addToCart(product) {
     const result = {...product, quantity: 1};
     cart.push(result);
   }
-  saveCart();
+  saveCart(cart);
   renderCartSummary();
-}
-
-function getCartTotal(cart){
-  let total = 0;
-  for (const product of cart){
-    total += product.price * product.quantity;
-  }
-  return total;
 }
 
 function clearCart(){
     cart.length = 0;
-    saveCart();
+    saveCart(cart);
     renderCartSummary();
-}
-
-function saveCart(){
-  const cartJSON = JSON.stringify(cart);
-  localStorage.setItem("catalogCart", cartJSON);
-}
-
-function restoreCart(){
-  const savedCartJSON = localStorage.getItem("catalogCart");
-  if (savedCartJSON === null){
-    return
-  }
-  try {
-    const savedCart = JSON.parse(savedCartJSON);
-    if (!Array.isArray(savedCart)){
-    throw new Error("Ожидался массив корзины");
-    }
-    const restoredCart = [];
-    if (!areProductsValid(savedCart)){
-      throw new Error("Некорректные товары в корзине");
-    }
-    for (const product of savedCart) {
-      const restoredProduct = { ...product };
-      if (restoredProduct.quantity === undefined){
-        restoredProduct.quantity = 1;
-      }
-      if (!(restoredProduct.quantity > 0 && Number.isInteger(restoredProduct.quantity))) {
-        throw new Error("Некорректное количество товара")
-      }
-      restoredCart.push(restoredProduct);
-    }
-    cart.length = 0;
-    for (const product of restoredCart){
-      cart.push(product);
-    }
-  }
-
-  catch {
-    console.log("Не удалось восстановить корзину");
-  }
-
-
 }
 
 function increaseQuantity(index) {
   const cartItem = cart[index];
   cartItem.quantity += 1;
-  saveCart();
+  saveCart(cart);
   renderCartSummary();
 }
 
@@ -280,7 +237,7 @@ function decreaseQuantity(index){
   else {
     cart.splice(index, 1);
   }
-  saveCart();
+  saveCart(cart);
   renderCartSummary();
 }
 
@@ -289,7 +246,7 @@ filterForm.addEventListener("submit", handleFilterSubmit);
 allButton.addEventListener("click", showAllItems);
 
 
-restoreCart();
+restoreCart(cart);
 renderCartSummary();
 restoreSettings();
 initCatalog();
