@@ -157,7 +157,18 @@ function renderCartItems(){
    for (let i = 0; i < cart.length; i++) {
     const product = cart[i];
     const li = document.createElement("li");
-    li.textContent = `${product.name} - ${product.price} ₽`;
+    const total = product.price * product.quantity;
+    li.textContent = `${product.name} - ${product.price} ₽ × ${product.quantity} = ${total} ₽`;
+  const increaseButton = document.createElement("button");
+  increaseButton.type = "button";
+  increaseButton.textContent = "+";
+  li.append(increaseButton);
+  increaseButton.addEventListener("click", () => increaseQuantity(i));
+  const decreaseButton = document.createElement("button");
+  decreaseButton.type = "button";
+  decreaseButton.textContent = "-";
+  li.append(decreaseButton);
+  decreaseButton.addEventListener("click", () => decreaseQuantity(i));
     const removeButton = document.createElement("button");
     removeButton.type = 'button';
     removeButton.textContent = 'Удалить';
@@ -169,7 +180,11 @@ function renderCartItems(){
 }
 
 function renderCartSummary(){
-cartCountElement.textContent = `В корзине: ${cart.length}`;
+  let count = 0;
+  for (const product of cart){
+    count += product.quantity;
+  }
+cartCountElement.textContent = `В корзине: ${count}`;
   const total = getCartTotal(cart);
   cartTotalElement.textContent = `Сумма: ${total} ₽`;
   renderCartItems();
@@ -182,7 +197,14 @@ function removeFromCart(index){
 }
 
 function addToCart(product) {
-  cart.push(product);
+  const existingItem = cart.find(item => item.id === product.id && item.price === product.price);
+  if (existingItem !==  undefined){
+    existingItem.quantity += 1;
+  }
+  else {
+    const result = {...product, quantity: 1};
+    cart.push(result);
+  }
   saveCart();
   renderCartSummary();
 }
@@ -190,7 +212,7 @@ function addToCart(product) {
 function getCartTotal(cart){
   let total = 0;
   for (const product of cart){
-    total += product.price;
+    total += product.price * product.quantity;
   }
   return total;
 }
@@ -216,11 +238,22 @@ function restoreCart(){
     if (!Array.isArray(savedCart)){
     throw new Error("Ожидался массив корзины");
     }
+    const restoredCart = [];
     if (!areProductsValid(savedCart)){
       throw new Error("Некорректные товары в корзине");
     }
-    cart.length = 0;
     for (const product of savedCart) {
+      const restoredProduct = { ...product };
+      if (restoredProduct.quantity === undefined){
+        restoredProduct.quantity = 1;
+      }
+      if (!(restoredProduct.quantity > 0 && Number.isInteger(restoredProduct.quantity))) {
+        throw new Error("Некорректное количество товара")
+      }
+      restoredCart.push(restoredProduct);
+    }
+    cart.length = 0;
+    for (const product of restoredCart){
       cart.push(product);
     }
   }
@@ -230,6 +263,25 @@ function restoreCart(){
   }
 
 
+}
+
+function increaseQuantity(index) {
+  const cartItem = cart[index];
+  cartItem.quantity += 1;
+  saveCart();
+  renderCartSummary();
+}
+
+function decreaseQuantity(index){
+  const cartItem = cart[index];
+  if (cartItem.quantity > 1){
+    cartItem.quantity -= 1;
+  }
+  else {
+    cart.splice(index, 1);
+  }
+  saveCart();
+  renderCartSummary();
 }
 
 clearCartButton.addEventListener("click", clearCart);
