@@ -165,23 +165,29 @@ function renderCartItems(){
   }
    for (let i = 0; i < cart.length; i++) {
     const product = cart[i];
+    const detailsElement = document.createElement("span");
     const li = document.createElement("li");
+    li.classList.add("cart-item");
     const total = product.price * product.quantity;
-    li.textContent = `${product.name} - ${product.price} ₽ × ${product.quantity} = ${total} ₽`;
+    detailsElement.textContent = `${product.name} - ${product.price} ₽ × ${product.quantity} = ${total} ₽`;
+    li.append(detailsElement);
+    const actionsElement = document.createElement("div");
+    actionsElement.classList.add("cart-actions");
   const increaseButton = document.createElement("button");
   increaseButton.type = "button";
   increaseButton.textContent = "+";
-  li.append(increaseButton);
+  actionsElement.append(increaseButton);
   increaseButton.addEventListener("click", () => increaseQuantity(i));
   const decreaseButton = document.createElement("button");
   decreaseButton.type = "button";
   decreaseButton.textContent = "-";
-  li.append(decreaseButton);
+  actionsElement.append(decreaseButton);
   decreaseButton.addEventListener("click", () => decreaseQuantity(i));
     const removeButton = document.createElement("button");
     removeButton.type = 'button';
     removeButton.textContent = 'Удалить';
-    li.append(removeButton);
+    actionsElement.append(removeButton);
+    li.append(actionsElement);
     cartListElement.append(li);
     removeButton.addEventListener("click", () => removeFromCart(i));
   }

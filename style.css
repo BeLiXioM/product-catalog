@@ -41,6 +41,39 @@
     margin-bottom: 16px;
 }
 
+.cart{
+    border: 1px solid #ddd;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+}
+
+#cart-list{
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.cart-item{
+    border-bottom: 1px solid #ddd;
+    padding: 12px 0;
+}
+
+.cart-item{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cart-actions{
+    display: flex;
+    gap: 8px;
+}
+
 @media (max-width: 900px){
     #product-list{
     grid-template-columns: 1fr 1fr;
